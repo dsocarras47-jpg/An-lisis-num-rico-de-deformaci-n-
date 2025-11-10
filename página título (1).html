@@ -1,0 +1,1579 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Velocidad de Deformación - Diferenciación Numérica</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Audiowide&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: 'Rajdhani', 'Orbitron', sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #f5f5dc 0%, #e8e8d8 100%);
+            padding: 25px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            border: 2px solid #d4d4c0;
+        }
+
+        h1 {
+            font-family: 'Audiowide', 'Orbitron', cursive;
+            color: #1a1a1a;
+            font-size: clamp(1.5em, 5vw, 2.8em);
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            letter-spacing: 2px;
+            word-wrap: break-word;
+        }
+
+        .subtitle {
+            font-family: 'Orbitron', sans-serif;
+            color: #4a4a4a;
+            font-size: clamp(1em, 3vw, 1.3em);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        nav {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5dc 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            border: 2px solid #d4d4c0;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        nav a {
+            font-family: 'Orbitron', sans-serif;
+            color: #1a1a1a;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            letter-spacing: 0.5px;
+            font-size: clamp(0.75em, 2vw, 0.9em);
+            display: block;
+            text-align: center;
+        }
+
+        nav a:active {
+            background: #1a1a1a;
+            color: #f5f5dc;
+            transform: scale(0.95);
+        }
+
+        @media (hover: hover) {
+            nav a:hover {
+                background: #1a1a1a;
+                color: #f5f5dc;
+                transform: translateY(-2px);
+            }
+        }
+
+        section {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5dc 100%);
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            border: 2px solid #d4d4c0;
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #1a1a1a;
+            font-size: clamp(1.3em, 4vw, 2em);
+            letter-spacing: 1px;
+            word-wrap: break-word;
+        }
+
+        h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: #2c2c2c;
+            margin: 20px 0 15px 0;
+            font-size: clamp(1.1em, 3vw, 1.5em);
+            letter-spacing: 1px;
+        }
+
+        h4 {
+            font-family: 'Rajdhani', sans-serif;
+            color: #555;
+            margin: 15px 0 10px 0;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            font-size: clamp(1em, 2.5vw, 1.2em);
+        }
+
+        .card {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8d8 100%);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #1a1a1a;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .formula-box {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(14px, 3vw, 18px);
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .formula-title {
+            font-family: 'Audiowide', cursive;
+            color: #4ec9b0;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            font-size: clamp(12px, 2.5vw, 16px);
+        }
+
+        .avatar-container {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            color: #f5f5dc;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid #d4d4c0;
+        }
+
+        .avatar {
+            width: clamp(120px, 30vw, 180px);
+            height: clamp(120px, 30vw, 180px);
+            background: linear-gradient(135deg, #f5f5dc 0%, #ffffff 100%);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(50px, 15vw, 80px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            animation: float 3s ease-in-out infinite;
+            border: 3px solid #1a1a1a;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .nav-panel {
+            background: linear-gradient(135deg, #e8e8d8 0%, #d4d4c0 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            border: 2px solid #1a1a1a;
+        }
+
+        .nav-button {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+            color: #f5f5dc;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: clamp(13px, 2.5vw, 16px);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .nav-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        }
+
+        .external-link-button {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+            color: #ffffff;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: clamp(14px, 2.5vw, 18px);
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+            box-shadow: 0 6px 20px rgba(45, 106, 79, 0.4);
+            letter-spacing: 1.5px;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+            min-width: 200px;
+            border: 2px solid #4ec9b0;
+        }
+
+        .external-link-button:hover {
+            background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(45, 106, 79, 0.6);
+        }
+
+        .external-link-button:active {
+            transform: scale(0.97);
+        }
+
+        .external-link-button::before {
+            content: '🔗 ';
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+
+        .calculator {
+            background: linear-gradient(135deg, #e8e8d8 0%, #d4d4c0 100%);
+            padding: 25px 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            border: 2px solid #1a1a1a;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: clamp(14px, 2.5vw, 16px);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+            font-family: 'Rajdhani', sans-serif;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #1a1a1a;
+        }
+
+        button {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+            color: #f5f5dc;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: clamp(14px, 2.5vw, 18px);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+            width: auto;
+            min-width: 100px;
+        }
+
+        button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .result {
+            background: linear-gradient(135deg, #e8e8d8 0%, #f5f5dc 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 5px solid #2c2c2c;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: clamp(12px, 2vw, 14px);
+            overflow-x: auto;
+            display: block;
+        }
+
+        table thead, table tbody {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            word-wrap: break-word;
+        }
+
+        th {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+            color: #f5f5dc;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        tr:active {
+            background: #f5f5f5;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .infografia {
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            padding: 25px 20px;
+            border-radius: 15px;
+            color: #f5f5dc;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid #d4d4c0;
+        }
+
+        .infografia h3 {
+            color: #f5f5dc;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .step-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .step {
+            text-align: center;
+            margin: 15px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #f5f5dc 0%, #ffffff 100%);
+            color: #1a1a1a;
+            border-radius: 50%;
+            width: clamp(50px, 15vw, 70px);
+            height: clamp(50px, 15vw, 70px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: clamp(20px, 5vw, 28px);
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            border: 3px solid #1a1a1a;
+        }
+
+        .importante {
+            background: linear-gradient(135deg, #e8e8d8 0%, #d4d4c0 100%);
+            border-left: 5px solid #1a1a1a;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8d8 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 2px solid #d4d4c0;
+        }
+
+        footer {
+            background: linear-gradient(135deg, #f5f5dc 0%, #ffffff 100%);
+            padding: 25px 20px;
+            border-radius: 15px;
+            margin-top: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            border: 2px solid #d4d4c0;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        .resource-section {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+        }
+
+        /* Mejoras específicas para móvil */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            section {
+                padding: 20px 15px;
+            }
+
+            nav {
+                top: 5px;
+                padding: 10px;
+            }
+
+            nav ul {
+                gap: 8px;
+            }
+
+            .nav-button {
+                display: block;
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .external-link-button {
+                display: block;
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            button {
+                display: block;
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th, td {
+                padding: 8px 4px;
+            }
+        }
+
+        /* Optimización para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.3em;
+                letter-spacing: 1px;
+            }
+
+            .subtitle {
+                font-size: 0.9em;
+            }
+
+            .formula-box {
+                padding: 12px;
+                font-size: 12px;
+            }
+
+            .avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+        }
+
+        /* Prevenir zoom en iOS */
+        @media screen and (-webkit-min-device-pixel-ratio: 0) {
+            select,
+            textarea,
+            input {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔬 ANÁLISIS NUMÉRICO DE DEFORMACIÓN</h1>
+            <p class="subtitle">Diferenciación Numérica Aplicada</p>
+            <p style="color: #888; margin-top: 10px; font-family: 'Rajdhani', sans-serif; font-size: clamp(0.8em, 2vw, 1em);">Ingeniería de Materiales | Métodos Computacionales</p>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#introduccion">INTRO</a></li>
+                <li><a href="#teoria">TEORÍA</a></li>
+                <li><a href="#modelo">MODELO</a></li>
+                <li><a href="#metodos">MÉTODOS</a></li>
+                <li><a href="#caso-estudio">CASO</a></li>
+                <li><a href="#calculadora">CALC</a></li>
+                <li><a href="#integracion">INTEGRACIÓN</a></li>
+                <li><a href="#comparacion">COMPARAR</a></li>
+                <li><a href="#aplicaciones">APPS</a></li>
+                <li><a href="#bibliografia">BIBLIO</a></li>
+            </ul>
+        </nav>
+
+        <!-- SECCIÓN 1: INTRODUCCIÓN -->
+        <section id="introduccion">
+            <h2>[ 01 ] INTRODUCCIÓN AL SISTEMA</h2>
+            
+            <div class="avatar-container">
+                <div class="avatar">🤖</div>
+                <h3 style="font-family: 'Audiowide', cursive; letter-spacing: 2px; color: #ffffff;">DR. NUMERIBOT v1.0</h3>
+                <p style="font-size: 1.1em; margin-top: 15px; font-family: 'Rajdhani', sans-serif; color: #f5f5dc;">ASISTENTE DE NAVEGACIÓN Y ANÁLISIS</p>
+                <p style="font-size: 1em; margin-top: 10px; font-family: 'Rajdhani', sans-serif; color: #f5f5dc;">▸ Sistema interactivo activado ◂</p>
+            </div>
+
+            <div class="nav-panel">
+                <h3 style="text-align: center; color: #1a1a1a; margin-bottom: 15px; font-family: 'Orbitron', sans-serif;">🎯 NAVEGACIÓN</h3>
+                <p style="text-align: center; margin-bottom: 15px; color: #2c2c2c;">Explora las secciones:</p>
+                <div style="text-align: center;">
+                    <a href="#introduccion" class="nav-button">📖 Conceptos</a>
+                    <a href="#teoria" class="nav-button">🧮 Teoría</a>
+                    <a href="#modelo" class="nav-button">📐 Modelo</a>
+                    <a href="#metodos" class="nav-button">⚙️ Métodos</a>
+                    <a href="#caso-estudio" class="nav-button">🔬 Caso</a>
+                    <a href="#calculadora" class="nav-button">🧪 Calculadora</a>
+                    <a href="#integracion" class="nav-button">∫ Integración</a>
+                    <a href="#comparacion" class="nav-button">📊 Comparar</a>
+                    <a href="#aplicaciones" class="nav-button">🏭 Aplicaciones</a>
+                    <a href="#bibliografia" class="nav-button">📚 Referencias</a>
+                </div>
+            </div>
+
+            <div class="nav-panel">
+                <p style="text-align: center; color: #1a1a1a;"><strong>🤖:</strong> Introducción - Conceptos Básicos</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#teoria" class="nav-button">➡️ Siguiente: Teoría</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Velocidad de Deformación</h3>
+                <p>La <strong>velocidad de deformación</strong> es la derivada temporal de la deformación. Representa qué tan rápido un material se deforma.</p>
+                
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p><strong>💡 Ejemplo simple:</strong> Como estirar un chicle. Si lo estiras lentamente, la velocidad es baja; si lo haces rápido, es alta.</p>
+                </div>
+                
+                <div class="formula-box">
+                    <div class="formula-title">Velocidad de Deformación</div>
+                    ε̇(t) = dε/dt
+                </div>
+                
+                <p><strong>Donde:</strong></p>
+                <ul>
+                    <li><strong>ε̇(t)</strong>: Velocidad de deformación (mm/s)</li>
+                    <li><strong>ε(t)</strong>: Deformación (mm)</li>
+                    <li><strong>t</strong>: Tiempo (s)</li>
+                </ul>
+                
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p><strong>🔍 Analogía:</strong> Si la deformación es como la distancia de un auto, la velocidad de deformación es como su velocidad (km/h).</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Importancia en Ingeniería</h3>
+                <div class="grid-2">
+                    <div style="background: white; padding: 15px; border-radius: 10px;">
+                        <h4>🏗️ Civil</h4>
+                        <p>Análisis de estructuras bajo carga y diseño sísmico.</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 10px;">
+                        <h4>⚙️ Mecánica</h4>
+                        <p>Estudios de fatiga y diseño de componentes.</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 10px;">
+                        <h4>🔬 Materiales</h4>
+                        <p>Caracterización y ensayos de materiales.</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 10px;">
+                        <h4>🏭 Industrial</h4>
+                        <p>Control de calidad en manufactura.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: TEORÍA -->
+        <section id="teoria">
+            <h2>[ 02 ] FUNDAMENTACIÓN TEÓRICA</h2>
+            
+            <div class="nav-panel">
+                <p style="text-align: center; color: #1a1a1a;"><strong>🤖:</strong> Fundamentación Teórica</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#introduccion" class="nav-button">⬅️ Anterior</a>
+                    <a href="#modelo" class="nav-button">➡️ Siguiente</a>
+                </div>
+            </div>
+            
+            <h3>MARCO CONCEPTUAL</h3>
+            <div class="card">
+                <h4>▸ DIFERENCIACIÓN NUMÉRICA</h4>
+                <p>Técnicas para aproximar la derivada cuando:</p>
+                <ul>
+                    <li>No conocemos la expresión analítica</li>
+                    <li>Solo tenemos valores discretos (datos experimentales)</li>
+                    <li>La función es muy compleja</li>
+                </ul>
+                
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p><strong>💡 ¿Por qué?</strong> En experimentos reales obtenemos tablas de números, no fórmulas. La diferenciación numérica calcula velocidades a partir de estas mediciones.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>▸ CONCEPTO DE DERIVADA</h4>
+                <p>La derivada es la tasa de cambio instantánea:</p>
+                <div class="formula-box">
+                    f'(x) = lim[h→0] [f(x+h) - f(x)] / h
+                </div>
+                <p style="margin-top: 15px;">En métodos numéricos, aproximamos este límite con valores finitos de <strong>h</strong>.</p>
+            </div>
+
+            <h3>RELEVANCIA</h3>
+            <div class="highlight">
+                <p><strong>¿Por qué es importante?</strong></p>
+                <ul>
+                    <li>Predecir fallos en materiales</li>
+                    <li>Diseño seguro de estructuras</li>
+                    <li>Caracterizar comportamiento mecánico</li>
+                    <li>Ensayos destructivos y no destructivos</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: MODELO MATEMÁTICO -->
+        <section id="modelo">
+            <h2>[ 03 ] MODELO MATEMÁTICO</h2>
+            
+            <div class="nav-panel">
+                <p style="text-align: center; color: #1a1a1a;"><strong>🤖:</strong> Modelo Matemático</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#teoria" class="nav-button">⬅️ Anterior</a>
+                    <a href="#metodos" class="nav-button">➡️ Siguiente</a>
+                </div>
+            </div>
+            
+            <div class="card">```html
+<h3>PARÁMETROS DEL SISTEMA</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Símbolo</th>
+                            <th>Descripción</th>
+                            <th>Unidades</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ε(t)</strong></td>
+                            <td>Deformación</td>
+                            <td>mm</td>
+                        </tr>
+                        <tr>
+                            <td><strong>t</strong></td>
+                            <td>Tiempo</td>
+                            <td>s</td>
+                        </tr>
+                        <tr>
+                            <td><strong>h</strong></td>
+                            <td>Paso/intervalo</td>
+                            <td>s</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ε̇(t)</strong></td>
+                            <td>Velocidad</td>
+                            <td>mm/s</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>FORMULACIÓN DEL PROBLEMA</h3>
+                <p>Dado un conjunto de mediciones:</p>
+                <div class="formula-box">
+                    {(t₀, ε₀), (t₁, ε₁), ..., (tₙ, εₙ)}
+                </div>
+                <p style="margin-top: 15px;">Queremos calcular ε̇(tᵢ) en cada punto tᵢ.</p>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: MÉTODOS -->
+        <section id="metodos">
+            <h2>[ 04 ] MÉTODOS NUMÉRICOS</h2>
+            
+            <div class="nav-panel">
+                <p style="text-align: center; color: #1a1a1a;"><strong>🤖:</strong> Métodos Numéricos</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#modelo" class="nav-button">⬅️ Anterior</a>
+                    <a href="#caso-estudio" class="nav-button">➡️ Siguiente</a>
+                </div>
+            </div>
+            
+            <div class="infografia">
+                <h3>📊 TRES ALGORITMOS</h3>
+                <div class="step-container">
+                    <div class="step">
+                        <div class="step-number">01</div>
+                        <strong style="font-size: 1.1em; font-family: 'Orbitron', sans-serif;">ADELANTE</strong>
+                        <p style="margin-top: 10px;">Punto actual + siguiente</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">02</div>
+                        <strong style="font-size: 1.1em; font-family: 'Orbitron', sans-serif;">ATRÁS</strong>
+                        <p style="margin-top: 10px;">Punto actual + anterior</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">03</div>
+                        <strong style="font-size: 1.1em; font-family: 'Orbitron', sans-serif;">CENTRAL</strong>
+                        <p style="margin-top: 10px;">Anterior + siguiente</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>[ 01 ] Diferencia Adelante</h3>
+            <div class="card">
+                <p>Usa el punto actual y el siguiente:</p>
+                <div class="formula-box">
+                    <div class="formula-title">Diferencia Adelante</div>
+                    ε̇ᵢ = [εᵢ₊₁ - εᵢ] / h
+                </div>
+                
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p><strong>💡 Ejemplo:</strong> Si a t=1s hay 0.42mm y a t=1.5s hay 0.85mm, la velocidad en t=1s es: (0.85 - 0.42) / 0.5 = 0.86 mm/s</p>
+                </div>
+                
+                <div class="highlight">
+                    <p><strong>Características:</strong></p>
+                    <ul>
+                        <li><strong>Error:</strong> O(h) - Primer orden</li>
+                        <li><strong>Uso:</strong> Inicio de datos</li>
+                        <li><strong>Desventaja:</strong> Menos preciso</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>[ 02 ] Diferencia Atrás</h3>
+            <div class="card">
+                <p>Usa el punto actual y el anterior:</p>
+                <div class="formula-box">
+                    <div class="formula-title">Diferencia Atrás</div>
+                    ε̇ᵢ = [εᵢ - εᵢ₋₁] / h
+                </div>
+                
+                <div class="highlight">
+                    <p><strong>Características:</strong></p>
+                    <ul>
+                        <li><strong>Error:</strong> O(h) - Primer orden</li>
+                        <li><strong>Uso:</strong> Final de datos</li>
+                        <li><strong>Ventaja:</strong> Útil para tiempo real</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>[ 03 ] Diferencia Central ★</h3>
+            <div class="card">
+                <p>Usa el punto anterior y siguiente:</p>
+                <div class="formula-box">
+                    <div class="formula-title">Diferencia Central</div>
+                    ε̇ᵢ = [εᵢ₊₁ - εᵢ₋₁] / (2h)
+                </div>
+                
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p><strong>💡 Ejemplo:</strong> Para t=1s, usando t=0.5s (0.15mm) y t=1.5s (0.85mm): velocidad = (0.85 - 0.15) / 1.0 = 0.70 mm/s</p>
+                    <p style="margin-top: 10px; font-weight: bold;">✨ Mejor porque promedia ambas direcciones</p>
+                </div>
+                
+                <div class="highlight">
+                    <p><strong>Características:</strong></p>
+                    <ul>
+                        <li><strong>Error:</strong> O(h²) - ¡MÁS PRECISO!</li>
+                        <li><strong>Uso:</strong> Puntos intermedios</li>
+                        <li><strong>★ RECOMENDADO</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="importante">
+                <strong>⚠️ Importante:</strong>
+                <ul>
+                    <li>El paso <strong>h</strong> afecta la precisión</li>
+                    <li>Usar <strong>central</strong> siempre que sea posible</li>
+                    <li>Adelante/atrás solo en extremos</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 5: CASO DE ESTUDIO -->
+        <section id="caso-estudio">
+            <h2>[ 05 ] CASO DE ESTUDIO</h2>
+            
+            <div class="nav-panel">
+                <p style="text-align: center; color: #1a1a1a;"><strong>🤖:</strong> Caso de Estudio</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#metodos" class="nav-button">⬅️ Anterior</a>
+                    <a href="#calculadora" class="nav-button">➡️ Siguiente</a>
+                </div>
+            </div>
+            
+            <div class="avatar-container">
+                <div class="avatar">🔬</div>
+                <h3 style="font-family: 'Audiowide', cursive; letter-spacing: 2px; color: #ffffff;">ANÁLISIS DE DEFORMACIÓN</h3>
+                <p style="font-size: 1.1em; margin-top: 15px; font-family: 'Rajdhani', sans-serif; color: #f5f5dc;">ENSAYO DE TRACCIÓN</p>
+            </div>
+
+            <div class="resource-section">
+                <div class="avatar-container" style="background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);">
+                    <div class="avatar" style="background: linear-gradient(135deg, #4ec9b0 0%, #52b788 100%);">📄</div>
+                    <h3 style="font-family: 'Audiowide', cursive; letter-spacing: 2px; color: #ffffff;">DOCUMENTACIÓN COMPLETA</h3>
+                    <p style="font-size: 1.1em; margin-top: 15px; font-family: 'Rajdhani', sans-serif; color: #f5f5dc;">Explicación Detallada del Caso de Estudio</p>
+                    <a href="https://drive.google.com/file/d/1hqkGbxC0YoMEld-kaW9KZTzmztzdNXtU/view?usp=drivesdk" target="_blank" class="external-link-button">
+                        VER EXPLICACIÓN COMPLETA
+                    </a>
+                </div>
+            </div>
+
+            <h3>DESCRIPCIÓN</h3>
+            <div class="card">
+                <h4>▸ CONTEXTO</h4>
+                <p>Ensayo de tracción en probeta de acero con registro de deformación.</p>
+                
+                <h4 style="margin-top: 15px;">▸ PARÁMETROS</h4>
+                <ul>
+                    <li><strong>Material:</strong> Acero A36</li>
+                    <li><strong>Longitud:</strong> 100 mm</li>
+                    <li><strong>Intervalo:</strong> h = 0.5 s</li>
+                    <li><strong>Temperatura:</strong> 25°C</li>
+                </ul>
+            </div>
+
+            <h3>DATOS EXPERIMENTALES</h3>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>i</th>
+                            <th>t (s)</th>
+                            <th>ε (mm)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>0</td><td>0.0</td><td>0.00</td></tr>
+                        <tr><td>1</td><td>0.5</td><td>0.15</td></tr>
+                        <tr><td>2</td><td>1.0</td><td>0.42</td></tr>
+                        <tr><td>3</td><td>1.5</td><td>0.85</td></tr>
+                        <tr><td>4</td><td>2.0</td><td>1.45</td></tr>
+                        <tr><td>5</td><td>2.5</td><td>2.20</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>SOLUCIÓN PASO A PASO</h3>
+            <div class="card">
+                <h4>Adelante (i=0)</h4>
+                <div class="formula-box">
+                    ε̇₀ = (0.15 - 0.00) / 0.5 = 0.30 mm/s
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>Central (i=1,2,3,4)</h4>
+                <div class="formula-box">
+                    ε̇₁ = (0.42 - 0.00) / 1.0 = 0.42 mm/s<br><br>
+                    ε̇₂ = (0.85 - 0.15) / 1.0 = 0.70 mm/s<br><br>
+                    ε̇₃ = (1.45 - 0.42) / 1.0 = 1.03 mm/s<br><br>
+                    ε̇₄ = (2.20 - 0.85) / 1.0 = 1.35 mm/s
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>Atrás (i=5)</h4>
+                <div class="formula-box">
+                    ε̇₅ = (2.20 - 1.45) / 0.5 = 1.50 mm/s
+                </div>
+            </div>
+
+            <div class="result">
+                <h4>📊 Resultados Completos</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>i</th>
+                            <th>t (s)</th>
+                            <th>ε (mm)</th>
+                            <th>ε̇ (mm/s)</th>
+                            <th>Método</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>0</td><td>0.0</td><td>0.00</td><td>0.30</td><td>Adelante</td></tr>
+                        <tr><td>1</td><td>0.5</td><td>0.15</td><td>0.42</td><td>Central</td></tr>
+                        <tr><td>2</td><td>1.0</td><td>0.42</td><td>0.70</td><td>Central</td></tr>
+                        <tr><td>3</td><td>1.5</td><td>0.85</td><td>1.03</td><td>Central</td></tr>
+                        <tr><td>4</td><td>2.0</td><td>1.45</td><td>1.35</td><td>Central</td></tr>
+                        <tr><td>5</td><td>2.5</td><td>2.20</td><td>1.50</td><td>Atrás</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 6: CALCULADORA -->
+        <section id="calculadora">
+            <h2>[ 06 ] CALCULADORA</h2>
+            
+            <div class="nav-panel">
+                <p style="text-align: center; color: #1a1a1a;"><strong>🤖:</strong> Calculadora Interactiva</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#caso-estudio" class="nav-button">⬅️ Anterior</a>
+                    <a href="#integracion" class="nav-button">➡️ Siguiente</a>
+                </div>
+            </div>
+
+            <div class="calculator">
+                <h3>🧮 Calculadora de Velocidad</h3>
+                
+                <div class="input-group">
+                    <label>Tiempo (separados por comas):</label>
+                    <input type="text" id="timeData" placeholder="0, 0.5, 1.0, 1.5, 2.0, 2.5">
+                </div>
+
+                <div class="input-group">
+                    <label>Deformación (separados por comas):</label>
+                    <input type="text" id="deformationData" placeholder="0.00, 0.15, 0.42, 0.85, 1.45, 2.20">
+                </div>
+
+                <div style="text-align: center;">
+                    <button onclick="calculateVelocities()">🚀 CALCULAR</button>
+                    <button onclick="loadExample()">📋 EJEMPLO</button>
+                    <button onclick="clearData()">🗑️ LIMPIAR</button>
+                </div>
+
+                <div id="calculatorResult"></div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 7: INTEGRACIÓN -->
+        <section id="integracion">
+            <h2>[ 07 ] INTEGRACIÓN NUMÉRICA</h2>
+            
+            <div class="nav-panel">
+                <p style="text-align: center; color: #1a1a1a;"><strong>🤖:</strong> Integración Numérica</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#calculadora" class="nav-button">⬅️ Anterior</a>
+                    <a href="#comparacion" class="nav-button">➡️ Siguiente</a>
+                </div>
+            </div>
+
+            <div class="avatar-container">
+                <div class="avatar">∫</div>
+                <h3 style="font-family: 'Audiowide', cursive; letter-spacing: 2px; color: #ffffff;">DEFORMACIÓN ACUMULADA</h3>
+                <p style="font-size: 1.1em; margin-top: 15px; font-family: 'Rajdhani', sans-serif; color: #f5f5dc;">REGLA DE SIMPSON 3/8</p>
+            </div>
+
+            <div class="resource-section">
+                <div class="avatar-container" style="background: linear-gradient(135deg, #d4a373 0%, #8b6f47 100%);">
+                    <div class="avatar" style="background: linear-gradient(135deg, #f4a460 0%, #d4a373 100%);">📊</div>
+                    <h3 style="font-family: 'Audiowide', cursive; letter-spacing: 2px; color: #ffffff;">INFOGRAFÍAS VISUALES</h3>
+                    <p style="font-size: 1.1em; margin-top: 15px; font-family: 'Rajdhani', sans-serif; color: #f5f5dc;">Material de Apoyo Gráfico y Diagramas</p>
+                    <a href="https://drive.google.com/drive/folders/1d3epTk6VwPUY4RrTRoOxMLuSE_Y-bY9e" target="_blank" class="external-link-button">
+                        VER INFOGRAFÍAS
+                    </a>
+                </div>
+            </div>
+
+            <h3>CONCEPTO FUNDAMENTAL</h3>
+            <div class="card">
+                <h4>▸ ¿QUÉ ES?</h4>
+                <p>Si la diferenciación nos dice qué tan rápido cambia algo, la integración nos dice cuánto se ha acumulado.</p>
+                
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p><strong>💡 Analogía:</strong></p>
+                    <p>• <strong>Diferenciación:</strong> Distancia → Velocidad</p>
+                    <p>• <strong>Integración:</strong> Velocidad → Distancia</p>
+                </div>
+
+                <h4 style="margin-top: 15px;">▸ DEFORMACIÓN ACUMULADA</h4>
+                <p>Representa el <strong>área bajo la curva</strong>. Útil para:</p>
+                <ul>
+                    <li>Calcular deformación total</li>
+                    <li>Determinar trabajo mecánico</li>
+                    <li>Evaluar energía absorbida</li>
+                    <li>Predecir comportamiento a largo plazo</li>
+                </ul>
+            </div>
+
+            <h3>MODELO MATEMÁTICO</h3>
+            <div class="card">
+                <div class="formula-box">
+                    <div class="formula-title">Deformación Total</div>
+                    Def. Total = ∫[a,b] ε(t) dt
+                </div>
+
+                <h4 style="margin-top: 15px;">▸ PARÁMETROS</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th>Descripción</th>
+                            <th>Unidades</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>ε(t)</strong></td><td>Deformación</td><td>mm</td></tr>
+                        <tr><td><strong>h</strong></td><td>Intervalo</td><td>s</td></tr>
+                        <tr><td><strong>[a, b]</strong></td><td>Rango</td><td>s</td></tr>
+                        <tr><td><strong>Resultado</strong></td><td>Área</td><td>mm·s</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>REGLA DE SIMPSON 3/8</h3>
+            <div class="card">
+                <h4>▸ ¿QUÉ ES?</h4>
+                <p>Método de integración que aproxima el área usando polinomios cúbicos (3er grado). Más preciso que otros métodos.</p>
+                
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p><strong>🎯 ¿Por qué 3/8?</strong> Por el factor 3/8 que aparece en la fórmula.</p>
+                </div>
+
+                <h4 style="margin-top: 15px;">▸ FÓRMULA</h4>
+                <div class="formula-box">
+                    <div class="formula-title">Simpson 3/8</div>
+                    Área = (3h/8) × [ε₀ + 3ε₁ + 3ε₂ + ε₃]
+                </div>
+
+                <div class="importante" style="margin-top: 15px;">
+                    <strong>⚠️ Requisitos:</strong>
+                    <ul>
+                        <li>Se necesitan <strong>4 puntos</strong></li>
+                        <li>Intervalos <strong>equiespaciados</strong></li>
+                        <li>Más preciso para funciones suaves</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>CASO DE ESTUDIO</h3>
+            <div class="card">
+                <h4>▸ PROBLEMA</h4>
+                <p>Calcular deformación acumulada en [0, 1.5] segundos.</p>
+
+                <h4 style="margin-top: 15px;">▸ DATOS</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>i</th>
+                            <th>t (s)</th>
+                            <th>ε (mm)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>0</td><td>0.0</td><td>0.00</td></tr>
+                        <tr><td>1</td><td>0.5</td><td>0.15</td></tr>
+                        <tr><td>2</td><td>1.0</td><td>0.42</td></tr>
+                        <tr><td>3</td><td>1.5</td><td>0.85</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>SOLUCIÓN</h3>
+            <div class="card">
+                <h4>Paso 1: Valores</h4>
+                <div class="formula-box">
+                    h = 0.5 s<br>
+                    ε₀ = 0.00, ε₁ = 0.15<br>
+                    ε₂ = 0.42, ε₃ = 0.85
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>Paso 2: Fórmula</h4>
+                <div class="formula-box">
+                    Área = (3×0.5/8) × [0.00 + 3(0.15) + 3(0.42) + 0.85]<br><br>
+                    Área = 0.1875 × [0.00 + 0.45 + 1.26 + 0.85]<br><br>
+                    Área = 0.1875 × 2.56
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>Paso 3: Resultado</h4>
+                <div class="formula-box" style="background: #2d6a4f; font-size: clamp(18px, 4vw, 24px);">
+                    <div class="formula-title">Deformación Acumulada</div>
+                    Área = 0.48 mm·s
+                </div>
+                
+                <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p><strong>📊 Interpretación:</strong> 0.48 mm·s representa el área bajo la curva. Útil para:</p>
+                    <ul>
+                        <li>Trabajo mecánico total</li>
+                        <li>Energía absorbida</li>
+                        <li>Comparar materiales</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>CALCULADORA SIMPSON 3/8</h3>
+            <div class="calculator">
+                <h3>∫ Calculadora de Área</h3>
+                <p style="text-align: center; margin-bottom: 15px;">Ingresa 4 valores equiespaciados</p>
+                
+                <div class="input-group">
+                    <label>Intervalo h (segundos):</label>
+                    <input type="number" id="intervalH" placeholder="0.5" step="0.1">
+                </div>
+
+                <div class="input-group">
+                    <label>4 valores (separados por comas):</label>
+                    <input type="text" id="deformValues" placeholder="0.00, 0.15, 0.42, 0.85">
+                </div>
+
+                <div style="text-align: center;">
+                    <button onclick="calculateSimpson38()">∫ CALCULAR</button>
+                    <button onclick="loadSimpsonExample()">📋 EJEMPLO</button>
+                    <button onclick="clearSimpson()">🗑️ LIMPIAR</button>
+                </div>
+
+                <div id="simpsonResult"></div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 8: COMPARACIÓN -->
+        <section id="comparacion">
+            <h2>[ 08 ] COMPARACIÓN</h2>
+            
+            <div class="nav-panel">
+                <p style="text-align: center; color: #1a1a1a;"><strong>🤖:</strong> Comparación de Métodos</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#integracion" class="nav-button">⬅️ Anterior</a>
+                    <a href="#aplicaciones" class="nav-button">➡️ Siguiente</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 Análisis Comparativo</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Método</th>
+                            <th>Error</th>
+                            <th>Precisión</th>
+                            <th>Uso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Adelante</strong></td>
+                            <td>O(h)</td>
+                            <td>Baja</td>
+                            <td>Inicio</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Atrás</strong></td>
+                            <td>O(h)</td>
+                            <td>Baja</td>
+                            <td>Final</td>
+                        </tr>
+                        <tr style="background: #e8f5e9;">
+                            <td><strong>Central</strong></td>
+                            <td>O(h²)</td>
+                            <td>Alta ⭐</td>
+                            <td>Intermedio</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="importante">
+                <strong>🎯 Recomendación:</strong>
+                <p style="margin-top: 10px;">Use <strong>diferencia central</strong> siempre que sea posible. Reserve adelante/atrás solo para extremos.</p>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 9: APLICACIONES -->
+        <section id="aplicaciones">
+            <h2>[ 09 ] APLICACIONES</h2>
+            
+            <div class="nav-panel">
+                <p style="text-align: center; color: #1a1a1a;"><strong>🤖:</strong> Aplicaciones Prácticas</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#comparacion" class="nav-button">⬅️ Anterior</a>
+                    <a href="#bibliografia" class="nav-button">➡️ Siguiente</a>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h4>🏗️ Construcción</h4>
+                    <ul>
+                        <li>Monitoreo de puentes</li>
+                        <li>Análisis de edificios</li>
+                        <li>Control de calidad</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>✈️ Aeroespacial</h4>
+                    <ul>
+                        <li>Pruebas de materiales</li>
+                        <li>Análisis estructural</li>
+                        <li>Simulaciones</li>
+                    </ul>```html
+</div>
+                <div class="card">
+                    <h4>🚗 Automotriz</h4>
+                    <ul>
+                        <li>Pruebas de choque</li>
+                        <li>Fatiga de materiales</li>
+                        <li>Diseño de componentes</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h4>🔬 Investigación</h4>
+                    <ul>
+                        <li>Nuevos materiales</li>
+                        <li>Caracterización</li>
+                        <li>Análisis experimental</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 10: BIBLIOGRAFÍA -->
+        <section id="bibliografia">
+            <h2>[ 10 ] REFERENCIAS</h2>
+            
+            <div class="nav-panel">
+                <p style="text-align: center; color: #1a1a1a;"><strong>🤖:</strong> Bibliografía</p>
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="#aplicaciones" class="nav-button">⬅️ Anterior</a>
+                    <a href="#introduccion" class="nav-button">🏠 Inicio</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📚 Fuentes</h3>
+                <ol>
+                    <li>Chapra & Canale (2015). <em>Métodos Numéricos para Ingenieros</em>. McGraw-Hill.</li>
+                    <li>Burden & Faires (2010). <em>Análisis Numérico</em>. Cengage Learning.</li>
+                    <li>Beer et al. (2017). <em>Mecánica de Materiales</em>. McGraw-Hill.</li>
+                    <li>Timoshenko & Goodier (1970). <em>Theory of Elasticity</em>. McGraw-Hill.</li>
+                    <li>ASTM E8/E8M. <em>Tension Testing of Metallic Materials</em>.</li>
+                </ol>
+            </div>
+        </section>
+
+        <footer>
+            <h3 style="font-family: 'Audiowide', cursive; margin-bottom: 15px;">🤖 DR. NUMERIBOT v1.0</h3>
+            <p style="font-size: 1.1em; margin-bottom: 10px;">Sistema de Análisis Numérico</p>
+            <p style="color: #666;">Ingeniería de Materiales | 2025</p>
+            <p style="margin-top: 20px; font-size: 0.9em;">© Métodos Computacionales</p>
+        </footer>
+    </div>
+
+    <script>
+        function loadExample() {
+            document.getElementById('timeData').value = '0, 0.5, 1.0, 1.5, 2.0, 2.5';
+            document.getElementById('deformationData').value = '0.00, 0.15, 0.42, 0.85, 1.45, 2.20';
+        }
+
+        function clearData() {
+            document.getElementById('timeData').value = '';
+            document.getElementById('deformationData').value = '';
+            document.getElementById('calculatorResult').innerHTML = '';
+        }
+
+        function calculateVelocities() {
+            const timeInput = document.getElementById('timeData').value;
+            const deformationInput = document.getElementById('deformationData').value;
+
+            if (!timeInput || !deformationInput) {
+                alert('⚠️ Por favor ingresa ambos conjuntos de datos');
+                return;
+            }
+
+            const times = timeInput.split(',').map(x => parseFloat(x.trim()));
+            const deformations = deformationInput.split(',').map(x => parseFloat(x.trim()));
+
+            if (times.length !== deformations.length) {
+                alert('⚠️ Los conjuntos deben tener la misma longitud');
+                return;
+            }
+
+            if (times.length < 2) {
+                alert('⚠️ Se necesitan al menos 2 puntos');
+                return;
+            }
+
+            const n = times.length;
+            const h = times[1] - times[0];
+            const velocities = [];
+            const methods = [];
+
+            for (let i = 0; i < n; i++) {
+                let velocity, method;
+                
+                if (i === 0) {
+                    velocity = (deformations[1] - deformations[0]) / h;
+                    method = 'Adelante';
+                } else if (i === n - 1) {
+                    velocity = (deformations[i] - deformations[i-1]) / h;
+                    method = 'Atrás';
+                } else {
+                    velocity = (deformations[i+1] - deformations[i-1]) / (2 * h);
+                    method = 'Central';
+                }
+                
+                velocities.push(velocity);
+                methods.push(method);
+            }
+
+            let resultHTML = `
+                <div class="result">
+                    <h4>✅ Resultados del Cálculo</h4>
+                    <p><strong>Paso h:</strong> ${h.toFixed(2)} s</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>i</th>
+                                <th>t (s)</th>
+                                <th>ε (mm)</th>
+                                <th>ε̇ (mm/s)</th>
+                                <th>Método</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            for (let i = 0; i < n; i++) {
+                resultHTML += `
+                    <tr>
+                        <td>${i}</td>
+                        <td>${times[i].toFixed(2)}</td>
+                        <td>${deformations[i].toFixed(2)}</td>
+                        <td>${velocities[i].toFixed(4)}</td>
+                        <td>${methods[i]}</td>
+                    </tr>
+                `;
+            }
+
+            resultHTML += `
+                        </tbody>
+                    </table>
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <p><strong>📊 Análisis:</strong></p>
+                        <ul>
+                            <li>Velocidad mínima: ${Math.min(...velocities).toFixed(4)} mm/s</li>
+                            <li>Velocidad máxima: ${Math.max(...velocities).toFixed(4)} mm/s</li>
+                            <li>Velocidad promedio: ${(velocities.reduce((a,b) => a+b, 0) / velocities.length).toFixed(4)} mm/s</li>
+                            <li>Puntos calculados: ${n}</li>
+                            <li>Con diferencia central: ${methods.filter(m => m === 'Central').length}</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('calculatorResult').innerHTML = resultHTML;
+        }
+
+        function loadSimpsonExample() {
+            document.getElementById('intervalH').value = '0.5';
+            document.getElementById('deformValues').value = '0.00, 0.15, 0.42, 0.85';
+        }
+
+        function clearSimpson() {
+            document.getElementById('intervalH').value = '';
+            document.getElementById('deformValues').value = '';
+            document.getElementById('simpsonResult').innerHTML = '';
+        }
+
+        function calculateSimpson38() {
+            const h = parseFloat(document.getElementById('intervalH').value);
+            const valuesInput = document.getElementById('deformValues').value;
+
+            if (!h || !valuesInput) {
+                alert('⚠️ Por favor ingresa el intervalo h y los valores de deformación');
+                return;
+            }
+
+            const values = valuesInput.split(',').map(x => parseFloat(x.trim()));
+
+            if (values.length !== 4) {
+                alert('⚠️ La Regla de Simpson 3/8 requiere exactamente 4 valores');
+                return;
+            }
+
+            const area = (3 * h / 8) * (values[0] + 3*values[1] + 3*values[2] + values[3]);
+
+            let resultHTML = `
+                <div class="result">
+                    <h4>✅ Resultado del Cálculo</h4>
+                    
+                    <h4 style="margin-top: 15px;">Valores ingresados:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>i</th>
+                                <th>t (s)</th>
+                                <th>ε (mm)</th>
+                                <th>Coef.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>0</td><td>${(0 * h).toFixed(2)}</td><td>${values[0].toFixed(2)}</td><td>1</td></tr>
+                            <tr><td>1</td><td>${(1 * h).toFixed(2)}</td><td>${values[1].toFixed(2)}</td><td>3</td></tr>
+                            <tr><td>2</td><td>${(2 * h).toFixed(2)}</td><td>${values[2].toFixed(2)}</td><td>3</td></tr>
+                            <tr><td>3</td><td>${(3 * h).toFixed(2)}</td><td>${values[3].toFixed(2)}</td><td>1</td></tr>
+                        </tbody>
+                    </table>
+
+                    <h4 style="margin-top: 15px;">Paso a paso:</h4>
+                    <div style="background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 10px; margin: 15px 0; font-family: 'Orbitron', monospace; font-size: clamp(11px, 2vw, 14px);">
+                        <p style="color: #4ec9b0; font-weight: bold; margin-bottom: 10px;">Fórmula Simpson 3/8:</p>
+                        Área = (3h/8) × [ε₀ + 3ε₁ + 3ε₂ + ε₃]<br><br>
+                        
+                        Área = (3×${h}/8) × [${values[0]} + 3×${values[1]} + 3×${values[2]} + ${values[3]}]<br><br>
+                        
+                        Área = ${(3*h/8).toFixed(4)} × [${values[0]} + ${(3*values[1]).toFixed(2)} + ${(3*values[2]).toFixed(2)} + ${values[3]}]<br><br>
+                        
+                        Área = ${(3*h/8).toFixed(4)} × ${(values[0] + 3*values[1] + 3*values[2] + values[3]).toFixed(2)}
+                    </div>
+
+                    <div style="background: #2d6a4f; color: white; padding: 20px; border-radius: 10px; text-align: center; margin: 15px 0; font-size: clamp(18px, 4vw, 24px); font-weight: bold;">
+                        <p style="color: #4ec9b0; font-size: clamp(14px, 3vw, 18px); margin-bottom: 10px;">DEFORMACIÓN ACUMULADA</p>
+                        Área = ${area.toFixed(4)} mm·s
+                    </div>
+
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px;">
+                        <p><strong>📊 Interpretación:</strong></p>
+                        <p style="margin-top: 10px;">El valor de <strong>${area.toFixed(4)} mm·s</strong> representa:</p>
+                        <ul>
+                            <li>Deformación acumulada total</li>
+                            <li>Trabajo mecánico realizado</li>
+                            <li>Energía absorbida</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('simpsonResult').innerHTML = resultHTML;
+        }
+
+        // Scroll suave
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Mensaje de inicio
+        console.log('%c🤖 DR. NUMERIBOT v1.0 INICIADO', 'color: #4ec9b0; font-size: 20px; font-weight: bold;');
+        console.log('%cSistema de Análisis Numérico - Versión Móvil Optimizada', 'color: #f5f5dc; font-size: 14px;');
+        
+        // Prevenir zoom accidental en iOS al hacer doble tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
+```
+
+✅  ***creditos***
+cesar peñaloza
+samuel chacon
+juan medrano
+daniel socarras
+luis jaimes
+adriana ramirez
